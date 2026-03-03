@@ -1,0 +1,8 @@
+pyyaml==6.0
+gradio==6.8.0
+python-dotenv==1.2.1
+langchain==1.2.10
+langchain-openai==1.1.10
+langchain-mcp-adapters==0.0.20
+fastmcp==3.0.0
+requests==2.32.3

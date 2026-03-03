@@ -1,0 +1,11 @@
+agent:
+  llm:
+    provider: openai        # openai | vllm | llamacpp
+    model: gpt-4o-mini
+    base_url: null          # set for vllm/llamacpp-server, e.g. http://localhost:8000/v1
+  system_prompt: "你是一個工具型助理，請用繁體中文回覆。"
+
+logging:
+  level: INFO
+  file: agent.log
+  format: "%(asctime)s %(levelname)s:%(name)s:%(message)s"
