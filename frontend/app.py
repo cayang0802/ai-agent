@@ -1,13 +1,17 @@
+from __future__ import annotations
+
 import json
 import logging
+import os
 
 import gradio as gr
 from langchain_core.messages import AIMessage, HumanMessage
 
 
 class ChatApp:
-    def __init__(self, agent, debug_tool_calls: bool = True):
+    def __init__(self, agent, indexer=None, debug_tool_calls: bool = True):
         self._agent = agent
+        self._indexer = indexer
         self._debug = debug_tool_calls
         self._logger = logging.getLogger(__name__)
 
@@ -79,10 +83,44 @@ class ChatApp:
                     return content
         return str(result)
 
+    def _upload_pdf(self, file):
+        """Handle PDF upload: index the file and return a status string."""
+        if self._indexer is None:
+            return "PDF indexing is not configured."
+        if file is None:
+            return "No file uploaded."
+        try:
+            n_chunks = self._indexer.add_file_to_db(file)
+            filename = os.path.basename(file)
+            return f"Indexed {n_chunks} chunks from {filename}"
+        except Exception as exc:
+            self._logger.exception("PDF indexing failed")
+            return f"Indexing failed: {exc}"
+
     def run(self):
-        demo = gr.ChatInterface(
-            fn=self._chat_fn,
-            title="AI Agent (LangChain + Tools)",
-            description="A toy AI agent, authored by Chia-An Yang",
-        )
+        with gr.Blocks(title="AI Agent (LangChain + Tools)") as demo:
+            gr.Markdown("## AI Agent (LangChain + Tools)\nA toy AI agent, authored by Chia-An Yang")
+
+            with gr.Row():
+                pdf_upload = gr.File(
+                    file_types=[".pdf"],
+                    label="Upload PDF",
+                    type="filepath",
+                )
+                pdf_status = gr.Textbox(
+                    label="Indexing Status",
+                    interactive=False,
+                    placeholder="Upload a PDF to index it…",
+                )
+
+            pdf_upload.upload(
+                fn=self._upload_pdf,
+                inputs=pdf_upload,
+                outputs=pdf_status,
+            )
+
+            gr.ChatInterface(
+                fn=self._chat_fn,
+            )
+
         demo.launch()

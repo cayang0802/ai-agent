@@ -9,13 +9,17 @@ from pydantic import BaseModel
 
 from core.agent import Agent, AgentConfig
 from frontend.app import ChatApp
+from model.embedding import EmbeddingConfig, EmbeddingFactory
+from rag.indexer import PDFIndexer
 from utils import setup_logging
 from utils.logger import LoggingConfig
+from vectordb.chroma import ChromaVectorStore
 
 
 class AppConfig(BaseModel):
     logging: LoggingConfig = LoggingConfig()
     agent: AgentConfig = AgentConfig()
+    embedding: EmbeddingConfig = EmbeddingConfig()
 
 
 def load_config(path: str | Path = "config.yaml") -> AppConfig:
@@ -35,8 +39,17 @@ def main():
     cfg = load_config()
     setup_logging(cfg.logging, _THIS_DIR)
     debug = os.getenv("DEBUG_TOOL_CALLS", "1") != "0"
+
     agent = Agent(cfg.agent).build()
-    ChatApp(agent, debug_tool_calls=debug).run()
+
+    embeddings = EmbeddingFactory.create(cfg.embedding)
+    store = ChromaVectorStore(
+        persist_directory=os.path.join(_THIS_DIR, "vectordb", "chroma_data"),
+        embeddings=embeddings,
+    )
+    indexer = PDFIndexer(store)
+
+    ChatApp(agent, indexer=indexer, debug_tool_calls=debug).run()
 
 
 if __name__ == "__main__":

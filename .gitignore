@@ -19,3 +19,6 @@ ENV/
 # Logs
 *.log
 
+# ChromaDB persisted data
+vectordb/chroma_data/
+

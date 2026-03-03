@@ -6,3 +6,7 @@ langchain-openai==1.1.10
 langchain-mcp-adapters==0.0.20
 fastmcp==3.0.0
 requests==2.32.3
+pypdf==3.0
+chromadb==0.5
+langchain-chroma==0.2
+langchain-community==0.3

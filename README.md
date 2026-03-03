@@ -1,6 +1,6 @@
 # ai-agent
 
-Gradio 聊天介面 + LangChain 工具型 agent，支援台股報價、台灣天氣查詢。
+Gradio 聊天介面 + LangChain 工具型 agent，支援台股報價、台灣天氣查詢與 PDF 文件索引。
 
 ## 安裝
 
