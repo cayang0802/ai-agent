@@ -12,6 +12,11 @@ logging:
 
 embedding:
   model: text-embedding-3-small
+  base_url: null          # set for on-premises OpenAI-compatible servers, e.g. http://localhost:8000/v1
 
 rag:
   debug_retrieval: true   # set to true to log query + retrieved chunks at INFO level
+
+evaluator:
+  enabled: true    # set to false to disable RAG evaluation via RAGAS and Langfuse
+                   # requires LANGFUSE_PUBLIC_KEY, LANGFUSE_SECRET_KEY in .env

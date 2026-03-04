@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import logging
 import os
 from pathlib import Path
 
@@ -8,15 +9,18 @@ from dotenv import load_dotenv
 from pydantic import BaseModel
 
 from core.agent import Agent, AgentConfig
+from rag.evaluator import RAGEvaluator, RAGEvaluatorConfig
 from rag.rag_engine import RAGConfig, RAGEngine
 from frontend.app import ChatApp
 from model.embedding import EmbeddingConfig, EmbeddingFactory
 from model.llm import LLMFactory
 from rag.indexer import PDFIndexer
-from tools.rag import init_rag_engine
+from tools.rag import init_rag_engine, init_rag_evaluator
 from utils import setup_logging
 from utils.logger import LoggingConfig
 from vectordb.chroma import ChromaVectorStore
+
+logger = logging.getLogger(__name__)
 
 
 class AppConfig(BaseModel):
@@ -24,6 +28,7 @@ class AppConfig(BaseModel):
     agent: AgentConfig = AgentConfig()
     embedding: EmbeddingConfig = EmbeddingConfig()
     rag: RAGConfig = RAGConfig()
+    evaluator: RAGEvaluatorConfig = RAGEvaluatorConfig()
 
 
 def load_config(path: str | Path = "config.yaml") -> AppConfig:
@@ -55,6 +60,16 @@ def main():
     indexer = PDFIndexer(store)
     rag_engine = RAGEngine(store=store, llm=llm, debug=cfg.rag.debug_retrieval)
     init_rag_engine(rag_engine)
+
+    if cfg.evaluator.enabled:
+        try:
+            from langfuse import Langfuse
+            langfuse = Langfuse()
+            evaluator = RAGEvaluator(langfuse=langfuse, llm=llm, embeddings=embeddings)
+            init_rag_evaluator(evaluator)
+            logger.info("RAG evaluator enabled (Langfuse).")
+        except Exception:
+            logger.exception("Failed to initialize RAG evaluator; evaluation disabled.")
 
     ChatApp(agent, indexer=indexer, debug_tool_calls=debug).run()
 

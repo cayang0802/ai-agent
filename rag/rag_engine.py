@@ -62,12 +62,13 @@ class RAGEngine:
         response = self._llm.invoke(prompt)
         return response.content
 
-    def run(self, query: str, k: int = 1) -> str:
+    def run(self, query: str, k: int = 1) -> tuple[str, list[str] | None]:
         chunks = self.retrieve(query, k=k)
         if not chunks:
             logger.info("RAG: no chunks found for query=%r, skipping", query)
-            return ""
+            return "", None
         prompt = self.augment(query, chunks)
         result = self.generate(prompt)
         logger.info("RAG generate: %d chars", len(result))
-        return result
+        contexts = [doc.page_content for doc in chunks]
+        return result, contexts
