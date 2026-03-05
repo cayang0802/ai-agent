@@ -46,18 +46,10 @@ class ChatApp:
         messages = past + [HumanMessage(content=message)]
         result = await self._agent.ainvoke({"messages": messages})
 
-        # create_agent 回傳的通常是帶有 messages 的 dict state
-        response = str(result)
-        if isinstance(result, dict) and "messages" in result:
-            msgs = result["messages"]
-            if self._debug:
-                tool_calls = self._extract_tool_calls(msgs if isinstance(msgs, list) else [])
-                self._print_tool_debug(tool_calls)
-            if isinstance(msgs, list) and msgs:
-                last = msgs[-1]
-                content = getattr(last, "content", None)
-                if content:
-                    response = content
+        msgs = result["messages"]
+        if self._debug:
+            self._print_tool_debug(self._extract_tool_calls(msgs))
+        response = msgs[-1].content
 
         self._memory.save_context({"input": message}, {"output": response})
         return response
