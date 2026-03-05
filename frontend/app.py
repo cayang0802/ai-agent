@@ -5,7 +5,8 @@ import logging
 import os
 
 import gradio as gr
-from langchain_core.messages import AIMessage, HumanMessage
+from langchain_classic.memory import ConversationBufferWindowMemory
+from langchain_core.messages import HumanMessage
 
 
 class ChatApp:
@@ -14,32 +15,7 @@ class ChatApp:
         self._indexer = indexer
         self._debug = debug_tool_calls
         self._logger = logging.getLogger(__name__)
-
-    def _history_to_lc_messages(self, history: list[tuple[str, str]] | None):
-        messages: list = []
-        if not history:
-            return messages
-
-        for item in history:
-            user_msg = None
-            bot_msg = None
-
-            # Gradio history 可能是 [user, bot] 或 [user, bot, extra...]
-            if isinstance(item, (list, tuple)):
-                if len(item) >= 1:
-                    user_msg = item[0]
-                if len(item) >= 2:
-                    bot_msg = item[1]
-            else:
-                # 其他型別先略過，避免解構錯誤
-                continue
-
-            if user_msg:
-                messages.append(HumanMessage(content=str(user_msg)))
-            if bot_msg:
-                messages.append(AIMessage(content=str(bot_msg)))
-
-        return messages
+        self._memory = ConversationBufferWindowMemory(k=3, return_messages=True)
 
     def _extract_tool_calls(self, messages: list) -> list[dict]:
         """從 LangChain messages 擷取 tool call 名稱與參數。"""
@@ -65,12 +41,13 @@ class ChatApp:
             self._logger.info("tool_args: %s", json.dumps(tool_args, ensure_ascii=False))
             self._logger.info("==================")
 
-    async def _chat_fn(self, message: str, history: list[tuple[str, str]]):
-        messages = self._history_to_lc_messages(history)
-        messages.append(HumanMessage(content=message))
+    async def _chat_fn(self, message: str, history):
+        past = self._memory.load_memory_variables({})["history"]
+        messages = past + [HumanMessage(content=message)]
         result = await self._agent.ainvoke({"messages": messages})
 
         # create_agent 回傳的通常是帶有 messages 的 dict state
+        response = str(result)
         if isinstance(result, dict) and "messages" in result:
             msgs = result["messages"]
             if self._debug:
@@ -80,8 +57,10 @@ class ChatApp:
                 last = msgs[-1]
                 content = getattr(last, "content", None)
                 if content:
-                    return content
-        return str(result)
+                    response = content
+
+        self._memory.save_context({"input": message}, {"output": response})
+        return response
 
     def _upload_pdf(self, file):
         """Handle PDF upload: index the file and return a status string."""
