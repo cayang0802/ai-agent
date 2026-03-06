@@ -7,6 +7,7 @@ import os
 import gradio as gr
 from langchain_classic.memory import ConversationBufferWindowMemory
 from langchain_core.messages import HumanMessage
+from langfuse.langchain import CallbackHandler
 
 
 class ChatApp:
@@ -44,7 +45,11 @@ class ChatApp:
     async def _chat_fn(self, message: str, history):
         past = self._memory.load_memory_variables({})["history"]
         messages = past + [HumanMessage(content=message)]
-        result = await self._agent.ainvoke({"messages": messages})
+
+        handler = CallbackHandler()
+
+        result = await self._agent.ainvoke({"messages": messages},
+                                           config={"callbacks": [handler]})
 
         msgs = result["messages"]
         if self._debug:

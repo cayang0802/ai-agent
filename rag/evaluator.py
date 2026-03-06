@@ -54,7 +54,7 @@ class RAGEvaluator:
         scores: dict = result.scores[0]
         logger.info("RAGAS raw scores: %s", scores)
 
-        trace = self._langfuse.trace(
+        span = self._langfuse.start_span(
             name="rag_eval",
             input={"query": query, "contexts": contexts},
             output={"answer": answer},
@@ -64,13 +64,13 @@ class RAGEvaluator:
             if value is None or value != value:  # NaN check
                 logger.warning("RAG metric %s skipped (NaN/None)", name)
                 continue
-            trace.score(name=name, value=float(value))
+            span.score_trace(name=name, value=float(value))
             logger.info("RAG metric %s: %.4f", name, float(value))
             submitted += 1
 
+        span.end()
         self._langfuse.flush()
         logger.info(
-            "RAG evaluation complete — %d score(s) sent to Langfuse (trace_id=%s).",
+            "RAG evaluation complete — %d score(s) sent to Langfuse.",
             submitted,
-            trace.id,
         )
