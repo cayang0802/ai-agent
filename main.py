@@ -61,7 +61,8 @@ def main():
         ".pdf": PDFIndexer(store),
         ".txt": TXTIndexer(store),
     }
-    rag_engine = RAGEngine(store=store, llm=llm, debug=cfg.rag.debug_retrieval)
+    rag_engine = RAGEngine(store=store, llm=llm, debug=cfg.rag.debug_retrieval,
+                           reranker_model=cfg.rag.reranker_model)
     init_rag_engine(rag_engine)
 
     if cfg.evaluator.enabled:
