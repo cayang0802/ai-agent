@@ -15,5 +15,9 @@ class VectorStoreInterface(ABC):
         pass
 
     @abstractmethod
+    def hybrid_search(self, query: str, k: int, filter: dict | None = None) -> list[Document]:
+        pass
+
+    @abstractmethod
     def clear(self) -> None:
         pass

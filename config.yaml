@@ -16,6 +16,7 @@ embedding:
 
 rag:
   debug_retrieval: true   # set to true to log query + retrieved chunks at INFO level
+  reranker_model: BAAI/bge-reranker-base   # cross-encoder model for reranking retrieved chunks
 
 evaluator:
   enabled: true    # set to false to disable RAG evaluation via RAGAS and Langfuse

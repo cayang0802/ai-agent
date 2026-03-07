@@ -39,12 +39,12 @@ def _run_evaluation(evaluator: RAGEvaluator, query: str, contexts: list[str], an
 
 
 @tool
-def get_rag_result(query: str, k: int = 1) -> str:
+def get_rag_result(query: str, k: int = 3) -> str:
     """Search indexed documents and return relevant information for the given query.
 
     Args:
         query: The question or topic to search for in the indexed documents.
-        k: Number of document chunks to retrieve (default 1).
+        k: Number of document chunks to retrieve (default 3).
     """
     if _rag_engine is None:
         return "RAG engine is not initialized."

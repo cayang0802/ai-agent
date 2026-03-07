@@ -12,8 +12,8 @@ class Indexer:
     def __init__(
         self,
         store: VectorStoreInterface,
-        chunk_size: int = 1000,
-        chunk_overlap: int = 200,
+        chunk_size: int = 200,
+        chunk_overlap: int = 50,
     ) -> None:
         self._store = store
         self._splitter = RecursiveCharacterTextSplitter(
@@ -25,10 +25,10 @@ class Indexer:
         raise NotImplementedError
 
     def add_file_to_db(self, file_path: str) -> int:
-        # 從檔名解析作者資訊與副檔名，例如 report_作者(王小明).pdf → author: 王小明, file_type: .pdf
+        # 從檔名解析作者資訊與副檔名，例如 report_作者_王小明_.pdf → author: 王小明, file_type: .pdf
         filename = os.path.basename(file_path)
         metadata = {}
-        if m := re.search(r"_作者\((.+?)\)", filename):
+        if m := re.search(r"_作者_(.+?)_", filename):
             metadata["author"] = m.group(1)
         metadata["file_type"] = os.path.splitext(filename)[1]
         metadata["file_name"] = filename
