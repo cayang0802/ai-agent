@@ -14,7 +14,7 @@ from rag.rag_engine import RAGConfig, RAGEngine
 from frontend.app import ChatApp
 from model.embedding import EmbeddingConfig, EmbeddingFactory
 from model.llm import LLMFactory
-from rag.indexer import PDFIndexer
+from rag.indexer import PDFIndexer, TXTIndexer
 from tools.rag import init_rag_engine, init_rag_evaluator
 from utils import setup_logging
 from utils.logger import LoggingConfig
@@ -57,7 +57,10 @@ def main():
         persist_directory=os.path.join(_THIS_DIR, "vectordb", "chroma_data"),
         embeddings=embeddings,
     )
-    indexer = PDFIndexer(store)
+    indexers = {
+        ".pdf": PDFIndexer(store),
+        ".txt": TXTIndexer(store),
+    }
     rag_engine = RAGEngine(store=store, llm=llm, debug=cfg.rag.debug_retrieval)
     init_rag_engine(rag_engine)
 
@@ -71,7 +74,7 @@ def main():
         except Exception:
             logger.exception("Failed to initialize RAG evaluator; evaluation disabled.")
 
-    ChatApp(agent, indexer=indexer, debug_tool_calls=debug).run()
+    ChatApp(agent, indexers=indexers, debug_tool_calls=debug).run()
 
 
 if __name__ == "__main__":

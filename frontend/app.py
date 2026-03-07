@@ -11,9 +11,9 @@ from langfuse.langchain import CallbackHandler
 
 
 class ChatApp:
-    def __init__(self, agent, indexer=None, debug_tool_calls: bool = True):
+    def __init__(self, agent, indexers: dict, debug_tool_calls: bool = True):
         self._agent = agent
-        self._indexer = indexer
+        self._indexers = indexers
         self._debug = debug_tool_calls
         self._logger = logging.getLogger(__name__)
         self._memory = ConversationBufferWindowMemory(k=3, return_messages=True)
@@ -59,18 +59,20 @@ class ChatApp:
         self._memory.save_context({"input": message}, {"output": response})
         return response
 
-    def _upload_pdf(self, file):
-        """Handle PDF upload: index the file and return a status string."""
-        if self._indexer is None:
-            return "PDF indexing is not configured."
+    def _upload_file(self, file):
+        """Handle file upload: index the file using the matching indexer."""
         if file is None:
             return "No file uploaded."
+        ext = os.path.splitext(file)[1].lower()
+        indexer = self._indexers.get(ext)
+        if indexer is None:
+            return f"No indexer configured for {ext} files."
         try:
-            n_chunks = self._indexer.add_file_to_db(file)
+            n_chunks = indexer.add_file_to_db(file)
             filename = os.path.basename(file)
             return f"Indexed {n_chunks} chunks from {filename}"
         except Exception as exc:
-            self._logger.exception("PDF indexing failed")
+            self._logger.exception("File indexing failed")
             return f"Indexing failed: {exc}"
 
     def run(self):
@@ -79,18 +81,18 @@ class ChatApp:
 
             with gr.Row():
                 pdf_upload = gr.File(
-                    file_types=[".pdf"],
-                    label="Upload PDF",
+                    file_types=[".pdf", ".txt"],
+                    label="Upload PDF / TXT",
                     type="filepath",
                 )
                 pdf_status = gr.Textbox(
                     label="Indexing Status",
                     interactive=False,
-                    placeholder="Upload a PDF to index it…",
+                    placeholder="Upload a PDF or TXT to index it…",
                 )
 
             pdf_upload.upload(
-                fn=self._upload_pdf,
+                fn=self._upload_file,
                 inputs=pdf_upload,
                 outputs=pdf_status,
             )
