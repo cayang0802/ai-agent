@@ -71,7 +71,7 @@ def _fetch_mis_quote(ex_ch_list: list[str]) -> dict | None:
 
 @tool
 def get_taiwan_stock(symbol: str) -> str:
-    """查詢台股最新股價與指數。輸入台股代號，例如：2330（台積電）、2317（鴻海）、TWII（加權指數）。"""
+    """Search Taiwan stock prices and indices. Enter a code (e.g., 2330, 2317, or TWII)."""
     try:
         normalized = _normalize_symbol(symbol)
         if not normalized:

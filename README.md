@@ -1,8 +1,18 @@
 # ai-agent
 
-Gradio 聊天介面 + LangChain 工具型 agent，支援台股報價、台灣天氣查詢與 PDF 文件索引。
+Gradio 聊天介面 + LangChain 工具型 agent，支援台股報價、台灣天氣查詢與 PDF / TXT 文件索引（RAG）。
+使用 Langfuse Dashboard。
 
-## 安裝
+## 功能
+
+- **台股報價**：即時查詢 TWSE MIS API（支援股票代號、中文名稱、加權指數）
+- **台灣天氣**：查詢中央氣象署觀測站資料（支援縣市名稱或地點）
+- **RAG 文件問答**：上傳 PDF / TXT → 向量索引 → 向量資料庫：Query → 查詢擴展 → metadata 過濾 (作者) → 混合檢索（語意 + BM25, with RRF）→ CrossEncoder Reranker → top-K → LLM 合成回答
+- **對話記憶**：維持最近 3 輪對話上下文
+- **RAG 評估**（選用）：透過 RAGAS + Langfuse 追蹤 Faithfulness、AnswerRelevancy
+
+## 環境
+Python 3.11
 
 ```bash
 pip install -r requirements.txt
@@ -18,7 +28,41 @@ pip install -r requirements.txt
 
 ### `config.yaml`
 
-調整 LLM 設定或 system prompt：
+各種設定
+
+## 使用本地模型
+
+### vLLM
+
+```bash
+vllm serve <model> --port 8000 --enable-auto-tool-choice --tool-call-parser llama3_json
+```
+
+`config.yaml`：
+
+```yaml
+agent:
+  llm:
+    provider: openai
+    model: 不看
+    base_url: http://localhost:8000/v1
+```
+
+### llama.cpp
+
+```bash
+llama-server -m <model>.gguf -np 1 -c 8192 --jinja --verbose
+```
+
+`config.yaml`：
+
+```yaml
+agent:
+  llm:
+    provider: openai
+    model: 不看
+    base_url: http://localhost:8080/v1
+```
 
 ## Langfuse（選用）
 

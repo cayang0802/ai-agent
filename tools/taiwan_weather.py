@@ -147,7 +147,11 @@ def _format_station(s: dict) -> str:
 
 @tool
 def get_taiwan_weather(location: str) -> str:
-    """查詢台灣指定地點目前的天氣觀測資料。輸入縣市名稱或地點，例如：台北、高雄、新竹、花蓮、台中大里。"""
+    """
+    Retrieve current weather observation data for specified locations in Taiwan. Enter a city, county,
+    or specific location, such as {台北}, {高雄}, {新竹}, {花蓮}.
+    """
+
     api_key = os.getenv("CWA_API_KEY", "").strip()
     if not api_key:
         return "找不到 CWA_API_KEY，請在 .env 加入中央氣象署 API 金鑰。"

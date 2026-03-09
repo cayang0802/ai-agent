@@ -9,7 +9,7 @@ from model.llm import LLMConfig, LLMFactory
 
 class AgentConfig(BaseModel):
     llm: LLMConfig = Field(default_factory=LLMConfig)
-    system_prompt: str = "你是一個工具型助理，請用繁體中文回覆。"
+    system_prompt: str = "Your task is to answer user questions based on the provided context."
     # 未來 RAG：retrievers: list = []
 
 
