@@ -3,6 +3,8 @@
 Gradio 聊天介面 + LangChain 工具型 agent，支援台股報價、台灣天氣查詢與 PDF / TXT 文件索引（RAG）。
 使用 Langfuse Dashboard。
 
+![system_overview](./images/system_overview.png)
+
 ## 功能
 
 - **台股報價**：即時查詢 TWSE MIS API（支援股票代號、中文名稱、加權指數）
